@@ -1,7 +1,6 @@
 from nltk.corpus import wordnet
 import spacy
-import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+import random
 # from .medicine_data_extractor import search_med
 
 # Load spaCy model
@@ -28,34 +27,48 @@ def process_user_input(user_input):
     doc = nlp(user_input)
     return doc
 
-def find_best_match(user_input, intent_patterns):
+def find_best_match(user_input, database):
     user_doc = process_user_input(user_input)
-    print('user_doc : ', user_doc)
-    print('user_input : ', user_input)
-    best_match = None
+    
+    best_intent = None
     best_similarity = 0
+    
+    augmented_patterns = generate_augmented_patterns(user_input)
+    
+    for item in database:
+        for patterns in item['patterns']:
+            for augmented_pattern in augmented_patterns:
+                aug_pattern_doc = nlp(augmented_pattern)
+                similarity = patterns.similarity(aug_pattern_doc)
+                
+                print(f'pattern_doc : {aug_pattern_doc}')
+                print(f'augmented_pattern : {patterns}')
+                print(f'similarity : {similarity}')
 
-    for pattern in intent_patterns:
-        augmented_patterns = generate_augmented_patterns(user_input)
-        print(f'Augmented_Patterns : {augmented_patterns}')
-        for augmented_pattern in augmented_patterns:
-            pattern_doc = nlp(augmented_pattern)
-            similarity = user_doc.similarity(pattern_doc)
-            # print('user_doc : ', user_doc)
-            # print('pattern_doc : ', pattern_doc)
-            # print('similarity : ', similarity)
-            if similarity > best_similarity:
-                best_similarity = similarity
-                best_match = pattern
+                if similarity > best_similarity:
+                    best_similarity = similarity
+                    best_intent = item['intent']
 
-    return best_match, best_similarity
+    return best_intent, best_similarity
 
-def get_response(user_input, intent_patterns, medicine_data):
-    match, similarity = find_best_match(user_input, intent_patterns)
-    if match and similarity > 0.7:  # Threshold for similarity
-        keyword = match['keywords']
+def get_keywords(user_input):
+    doc = nlp(user_input)
+    
+    keywords = set()
+    
+    for word in doc:
+        if word.tag == 'NOUN':
+            keywords.add(word)
+    
+    return keywords
+
+def get_response(user_input, database, medicine_data):
+    intent, similarity = find_best_match(user_input, database)
+    print(f'intent : {intent}, similarity : {similarity}')
+    if intent and similarity > 0.7: 
+        keyword = get_keywords(user_input)
         if keyword in medicine_data:
-            return medicine_data[keyword]['uses'][0]  # Example: Fetch 'uses' information
+            return random.choice(medicine_data[keyword]['uses'])  # Example: Fetch 'uses' information
         else:
             # Run scraping script if data not found
             
@@ -68,15 +81,11 @@ def get_response(user_input, intent_patterns, medicine_data):
     return "Sorry, I don't have information on that. Let me try to fetch it for you."
 
 # Example usage
-intent_patterns = [
+database = [
     {
-        'intent': 'information',
-        'patterns': ['Tell me about aspirin', 'What is aspirin used for?'],
-        'keywords': 'aspirin',
-        'response': [
-            'Aspirin is a salicylate (sa-LIS-il-ate). It works by reducing substances in the body that cause pain, fever, and inflammation.',
-            'Aspirin is used to treat pain, and reduce fever or inflammation. It is sometimes used to treat or prevent heart attacks, strokes, and chest pain (angina).'
-        ]
+        'intent': 'uses',
+        'patterns': ['What is the use of ?', 'Uses of ', 'Application of ', 'Usage of medicine like '],
+        'keywords': ['purpose', 'habit', 'expend', 'utilisation', 'utilization', 'apply', 'employ', 'practice', 'usage', 'enjoyment', 'exercise', 'utilize', 'role', 'consumption', 'usance', 'utilise', 'employment', 'function', 'economic_consumption', 'use_of_goods_and_services', 'manipulation', 'habituate', 'use'],
     },
     # Add more intents and patterns as needed
 ]
@@ -92,7 +101,7 @@ medicine_data = {
 }
 
 user_input = "Tell me about the uses of aspirin"
-response = get_response(user_input, intent_patterns, medicine_data)
+response = get_response(user_input, database, medicine_data)
 print("Response:", response)
 
 

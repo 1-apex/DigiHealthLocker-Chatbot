@@ -8,7 +8,9 @@ module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'mod
 sys.path.append(module_path)
 from augmented_data_generation import *
 from keywords import *
+from db_handle import *
 
+# static data
 intent_data = [
     {
         'intent': 'uses',
@@ -68,7 +70,7 @@ def find_best_match(user_input, intent_data):
 
     return best_intent, best_similarity
 
-def get_response(user_input, intent_data, medicine_data):
+def get_response(user_input, intent_data):
 
     intent, similarity = find_best_match(user_input, intent_data)
     print(f'intent : {intent}, similarity : {similarity}')
@@ -85,10 +87,12 @@ def get_response(user_input, intent_data, medicine_data):
                 # print(f'Key {normalized_key} is an intent keyword or present in the intent so skipped')
                 continue
                 
-            if normalized_key in medicine_data.keys():
+            # if normalized_key in medicine_data.keys():
+            medicine_data = find_medicine_data(normalized_key)
+            if medicine_data:
                 # print(f'Key {normalized_key} found in medicine_data')
-                if intent in medicine_data[normalized_key]:
-                    return random.choice(medicine_data[normalized_key][intent])
+                # if intent in medicine_data[normalized_key]:
+                return random.choice(medicine_data[intent])
 
             else:
             # Run scraping script if data not found
@@ -96,18 +100,20 @@ def get_response(user_input, intent_data, medicine_data):
                 scraped_data = search_med(normalized_key)
                 
                 if scraped_data:
-                    medicine_data[normalized_key] = scraped_data
+                    # medicine_data[normalized_key] = scraped_data
+                    insert_medicine_data(normalized_key, scraped_data)
                     # print('Data successfully fetch...')
                     # print('Updated medicine data : ', medicine_data)
                     
-                    if intent in medicine_data[normalized_key]:
-                        return random.choice(medicine_data[normalized_key][intent])
+                    medicine_data = find_medicine_data(normalized_key)
+                    if medicine_data:
+                        return random.choice(medicine_data[intent])
                     
                 else:
                     return "Sorry, I couldn't find any information on that."
                 
     return "Sorry, I don't have information on that. Let me try to fetch it for you."
 
-user_input = "what are the uses of paracetamol"
-response = get_response(user_input, intent_data, medicine_data)
+user_input = "dosage standards of aspirin"
+response = get_response(user_input, intent_data)
 print("Response:", response)

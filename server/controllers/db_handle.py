@@ -8,26 +8,25 @@ def connect_db():
     
     return collection
 
-# inserting data (keyword == medicine)
+# inserting data 
 def insert_medicine_data(keyword, data):
     db_collection = connect_db()
-    x = db_collection.insert_one({keyword : data})
-    if x:
-        return "Data inserted successfully in database"
+    result = db_collection.insert_one({keyword : data})
+
+    if result:
+        return "Data inserted successfully in database :)"
     else:
         return "Error inserting data :("
     
-# find data (keyword == medicine)
+# find data
 def find_medicine_data(keyword):
     db_collection = connect_db()
     
     query = { f"{keyword}.medicine": keyword }
-    # Query the collection
-    x = db_collection.find_one(query)
-    # print(x)
-    if x:
-        return "Data available in database"
-    else:
-        return f"No data available of {keyword} :("
+    result = db_collection.find_one(query)
     
-print(find_medicine_data('paracetamol'))
+    if result:
+        # return "Data available in database :)"
+        return result[keyword] 
+    # return f"No data available of {keyword} :("
+    return None

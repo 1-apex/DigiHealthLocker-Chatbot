@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+from db_handle import *
 
 def search_med(medicine):
     base_url = "https://www.drugs.com/"
@@ -35,6 +36,8 @@ def search_med(medicine):
         elif element.name == 'p' and current_section and current_section != 'side-effects':
             medicine_data[current_section].append(element.get_text(strip=True))
             
+    insert_medicine_data(medicine, medicine_data)
+    
     return medicine_data
 
 # Example usage

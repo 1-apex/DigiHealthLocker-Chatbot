@@ -21,9 +21,7 @@ async def message(sid, data):
     await sio.emit('response', response, to=sid)
 
 def process_message(message):
-    
-    
-    
+    message = "ajun tr kaam krty"
     return f"Processed: {message}"
 
 if __name__ == '__main__':

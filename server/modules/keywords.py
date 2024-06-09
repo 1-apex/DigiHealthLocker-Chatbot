@@ -9,9 +9,9 @@ def get_keywords(user_input):
     for word in doc:
         # print(f'{word} : {word.tag_}')
         if word.tag_ in ['NNP', 'NNS', 'NN']:
-            keywords.add(word)
+            keywords.add(word.text)
  
-    return keywords
+    return list(keywords)
 
 # sentence = "what are the uses of paracetamol, aspirin and crocin"
 # keywords = get_keywords(sentence)

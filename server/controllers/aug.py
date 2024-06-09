@@ -1,9 +1,55 @@
 from nltk.corpus import wordnet
 import spacy
 import random
-# from .medicine_data_extractor import search_med
-from ..modules.augmented_data_generation import generate_augmented_patterns
-from modules.keywords import get_keywords
+import sys
+import os
+module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'modules'))
+sys.path.append(module_path)
+from augmented_data_generation import *
+from keywords import *
+
+
+# Example usage
+intent_data = [
+    {
+        'intent': 'uses',
+        'patterns': 
+            ["What are the uses of _?", "How is _ used?", "What conditions does _ treat?", "What are the benefits of _?", "What can _ be used for?", "For what purposes is _ prescribed?", "What is _ used for?", "What conditions can _ help with?", "What are the indications for _?", "Why is _ prescribed?", "What does _ help with?", "What ailments does _ address?", "What medical conditions does _ treat?", "In what situations is _ recommended?", "What are the therapeutic uses of _?"],
+        'keywords': 
+            ['purpose', 'habit', 'expend', 'utilisation', 'utilization', 'apply', 'employ', 'practice', 'usage', 'enjoyment', 'exercise', 'utilize', 'role', 'consumption', 'usance', 'utilise', 'employment', 'function', 'economic_consumption', 'use_of_goods_and_services', 'manipulation', 'habituate', 'use', 'uses'],
+    },
+    {
+        'intent': 'warnings',
+        'patterns': 
+            ["What are the warnings for _?", "What should I be aware of when taking _?", "What are the precautions for _?", "Are there any warnings for _?", "What should I know before taking _?", "What are the risks of taking _?", "What should I avoid when taking _?", "Are there any safety concerns with _?", "What are the danger signs when using _?", "What safety information should I know about _?", "What warnings come with _?", "What precautions should I take with _?", "What are the contraindications for _?", "What are the safety warnings for _?", "Are there any special warnings for _?"],
+        'keywords':
+            ['warning', 'monition', 'admonish', 'admonition', 'warn', 'monish', 'discourage', 'word_of_advice', 'warnings']
+    },
+    {
+        'intent': 'dosage',
+        'patterns':
+            ["What is the dosage of _?", "How much _ should I take?", "What is the recommended dose of _?", "What dosage should be taken for _?", "How many milligrams of _ should I take?", "How often should I take _?", "Can you tell me the dosage of _?", "What is the prescribed dosage for _?", "What amount of _ is safe to take?", "How much _ is recommended?", "What is the daily dose of _?", "What is the standard dosage of _?", "How much _ should I take daily?", "What is the correct dosage of _?", "What is the appropriate dosage of _?", "What is the usual dose of _?"],
+        'keywords':
+            ['dosage', 'dose']
+    },
+    {
+        'intent': 'side-effects',
+        'patterns':
+            ["What are the side effects of _?", "Does _ have any side effects?", "What adverse effects can _ cause?", "Are there any side effects of _?", "What should I watch out for when taking _?", "What are the common side effects of _?", "Can _ cause any side effects?", "What negative effects does _ have?", "Are there any adverse reactions to _?", "What are the potential side effects of _?", "What side effects should I expect from _?", "What are the known side effects of _?", "Does _ have any negative side effects?", "What harmful effects can _ cause?", "Are there any dangerous side effects of _?"],
+        'keywords':
+            ['outcome', 'gist', 'impression', 'essence', 'set_up', 'effect', 'consequence', 'core', 'result', 'upshot', 'effectuate', 'effects', 'force', 'event', 'issue', 'personal_effects', 'burden']
+    },
+]
+
+medicine_data = {
+    'aspirin': {
+        'uses': ["Aspirin is used to treat pain, and reduce fever or inflammation. It is sometimes used to treat or prevent heart attacks, strokes, and chest pain (angina)."],
+        'warnings': ["Aspirin may cause stomach or intestinal bleeding, which can be fatal."],
+        'dosage': ["The usual dose for adults is one or two tablets every four hours as needed."],
+        'side-effects': ["Common side effects include upset stomach and heartburn."]
+    },
+    # Add more medicines as needed
+}
 
 # Load spaCy model
 nlp = spacy.load("en_core_web_lg")
@@ -25,22 +71,22 @@ nlp = spacy.load("en_core_web_lg")
 #             augmented_patterns.add(augmented_pattern)
 #     return list(augmented_patterns)
 
-def find_best_match(user_input, database):
+def find_best_match(user_input, intent_data):
     
     best_intent = None
     best_similarity = 0
     
     augmented_patterns = generate_augmented_patterns(user_input)
     
-    for item in database:
+    for item in intent_data:
         for patterns in item['patterns']:
             for augmented_pattern in augmented_patterns:
                 aug_pattern_doc = nlp(augmented_pattern)
-                similarity = patterns.similarity(aug_pattern_doc)
+                similarity = nlp(patterns).similarity(aug_pattern_doc)
                 
-                print(f'pattern_doc : {aug_pattern_doc}')
-                print(f'augmented_pattern : {patterns}')
-                print(f'similarity : {similarity}')
+                # print(f'pattern_doc : {aug_pattern_doc}')
+                # print(f'augmented_pattern : {patterns}')
+                # print(f'similarity : {similarity}')
 
                 if similarity > best_similarity:
                     best_similarity = similarity
@@ -48,18 +94,31 @@ def find_best_match(user_input, database):
 
     return best_intent, best_similarity
 
-def get_response(user_input, database, medicine_data):
-    intent, similarity = find_best_match(user_input, database)
+intent_keywords = ['use', 'uses', 'dosage', 'dose', 'side', 'effects', 'side-effects', 'warnings', 'danger']
+
+def get_response(user_input, intent_data, medicine_data):
+
+    intent, similarity = find_best_match(user_input, intent_data)
     print(f'intent : {intent}, similarity : {similarity}')
+
     if intent and similarity > 0.7: 
         keyword = get_keywords(user_input)
-        print('keyword : ', keyword)
-        if keyword in medicine_data:
-            if medicine_data[keyword][intent]:
-                pass
+        # print('keyword : ', keyword)
+
+        for key in keyword:
+            normalized_key = key.strip().lower()
+            
+            # skipping the intent keywords
+            if normalized_key in intent_keywords:
+                # print(f'Key {normalized_key} is an intent keyword or present in the intent so skipped')
+                continue
+                
+            if normalized_key in medicine_data.keys():
+                # print(f'Key {normalized_key} found in medicine_data')
+                if intent in medicine_data[normalized_key]:
+                    return random.choice(medicine_data[normalized_key][intent])
+
             else:
-                return random.choice(medicine_data[keyword][intent]) 
-        else:
             # Run scraping script if data not found
             
             # scraped_data = search_med(keyword)
@@ -67,31 +126,13 @@ def get_response(user_input, database, medicine_data):
             #     medicine_data[keyword] = scraped_data
             #     return scraped_data['uses'][0]  # Example: Fetch 'uses' information from scraped data
             # else:
-            return "Sorry, I couldn't find any information on that."
+                return "Sorry, I couldn't find any information on that."
     return "Sorry, I don't have information on that. Let me try to fetch it for you."
 
-# Example usage
-database = [
-    {
-        'intent': 'uses',
-        'patterns': ['What is the use of ?', 'Uses of ', 'Application of ', 'Usage of medicine like '],
-        'keywords': ['purpose', 'habit', 'expend', 'utilisation', 'utilization', 'apply', 'employ', 'practice', 'usage', 'enjoyment', 'exercise', 'utilize', 'role', 'consumption', 'usance', 'utilise', 'employment', 'function', 'economic_consumption', 'use_of_goods_and_services', 'manipulation', 'habituate', 'use'],
-    },
-    # Add more intents and patterns as needed
-]
 
-medicine_data = {
-    'aspirin': {
-        'uses': ["Aspirin is used to treat pain, and reduce fever or inflammation. It is sometimes used to treat or prevent heart attacks, strokes, and chest pain (angina)."],
-        'warnings': ["Aspirin may cause stomach or intestinal bleeding, which can be fatal."],
-        'dosage': ["The usual dose for adults is one or two tablets every four hours as needed."],
-        'side-effects': ["Common side effects include upset stomach and heartburn."]
-    },
-    # Add more medicines as needed
-}
 
-user_input = "Tell me about the uses of aspirin"
-response = get_response(user_input, database, medicine_data)
+user_input = "standard dosage of paracetamol"
+response = get_response(user_input, intent_data, medicine_data)
 print("Response:", response)
 
 

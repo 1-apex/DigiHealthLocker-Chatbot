@@ -8,7 +8,7 @@ def get_synonyms(word):
             synonyms.add(lemma.name())
     return list(synonyms)
 
-# # Get synonyms of the word "use"
-# word = "use"
+# Get synonyms of the word
+# word = "effects"
 # synonyms = get_synonyms(word)
 # print(synonyms)

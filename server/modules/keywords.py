@@ -7,7 +7,7 @@ def get_keywords(user_input):
     keywords = set()
     
     for word in doc:
-        print(f'{word} : {word.tag_}')
+        # print(f'{word} : {word.tag_}')
         if word.tag_ in ['NNP', 'NNS', 'NN']:
             keywords.add(word)
  

@@ -2,33 +2,30 @@ from nltk.corpus import wordnet
 import spacy
 import random
 # from .medicine_data_extractor import search_med
+from ..modules.augmented_data_generation import generate_augmented_patterns
+from modules.keywords import get_keywords
 
 # Load spaCy model
 nlp = spacy.load("en_core_web_lg")
 
-def get_synonyms(word):
-    synonyms = set()
-    for syn in wordnet.synsets(word):
-        for lemma in syn.lemmas():
-            synonyms.add(lemma.name().replace('_', ' '))
-    return list(synonyms)
+# def get_synonyms(word):
+#     synonyms = set()
+#     for syn in wordnet.synsets(word):
+#         for lemma in syn.lemmas():
+#             synonyms.add(lemma.name().replace('_', ' '))
+#     return list(synonyms)
 
-def generate_augmented_patterns(user_input):
-    augmented_patterns = set()
-    doc = nlp(user_input)
-    for token in doc:
-        synonyms = get_synonyms(token.text)
-        for synonym in synonyms:
-            augmented_pattern = user_input.replace(token.text, synonym)
-            augmented_patterns.add(augmented_pattern)
-    return list(augmented_patterns)
-
-def process_user_input(user_input):
-    doc = nlp(user_input)
-    return doc
+# def generate_augmented_patterns(user_input):
+#     augmented_patterns = set()
+#     doc = nlp(user_input)
+#     for token in doc:
+#         synonyms = get_synonyms(token.text)
+#         for synonym in synonyms:
+#             augmented_pattern = user_input.replace(token.text, synonym)
+#             augmented_patterns.add(augmented_pattern)
+#     return list(augmented_patterns)
 
 def find_best_match(user_input, database):
-    user_doc = process_user_input(user_input)
     
     best_intent = None
     best_similarity = 0
@@ -51,24 +48,17 @@ def find_best_match(user_input, database):
 
     return best_intent, best_similarity
 
-def get_keywords(user_input):
-    doc = nlp(user_input)
-    
-    keywords = set()
-    
-    for word in doc:
-        if word.tag == 'NOUN':
-            keywords.add(word)
-    
-    return keywords
-
 def get_response(user_input, database, medicine_data):
     intent, similarity = find_best_match(user_input, database)
     print(f'intent : {intent}, similarity : {similarity}')
     if intent and similarity > 0.7: 
         keyword = get_keywords(user_input)
+        print('keyword : ', keyword)
         if keyword in medicine_data:
-            return random.choice(medicine_data[keyword]['uses'])  # Example: Fetch 'uses' information
+            if medicine_data[keyword][intent]:
+                pass
+            else:
+                return random.choice(medicine_data[keyword][intent]) 
         else:
             # Run scraping script if data not found
             

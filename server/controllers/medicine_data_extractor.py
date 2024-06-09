@@ -13,6 +13,7 @@ def search_med(medicine):
     soup = BeautifulSoup(req.content, "lxml")
     
     medicine_data = {
+        'medicine': medicine,
         'uses': [],
         'warnings': [],
         'dosage': [],

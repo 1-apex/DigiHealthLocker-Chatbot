@@ -3,13 +3,12 @@ import spacy
 import random
 import sys
 import os
+from medicine_data_extractor import *
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'modules'))
 sys.path.append(module_path)
 from augmented_data_generation import *
 from keywords import *
 
-
-# Example usage
 intent_data = [
     {
         'intent': 'uses',
@@ -41,35 +40,10 @@ intent_data = [
     },
 ]
 
-medicine_data = {
-    'aspirin': {
-        'uses': ["Aspirin is used to treat pain, and reduce fever or inflammation. It is sometimes used to treat or prevent heart attacks, strokes, and chest pain (angina)."],
-        'warnings': ["Aspirin may cause stomach or intestinal bleeding, which can be fatal."],
-        'dosage': ["The usual dose for adults is one or two tablets every four hours as needed."],
-        'side-effects': ["Common side effects include upset stomach and heartburn."]
-    },
-    # Add more medicines as needed
-}
+intent_keywords = ['use', 'uses', 'dosage', 'dose', 'side', 'effects', 'side-effects', 'warnings', 'danger']
 
 # Load spaCy model
 nlp = spacy.load("en_core_web_lg")
-
-# def get_synonyms(word):
-#     synonyms = set()
-#     for syn in wordnet.synsets(word):
-#         for lemma in syn.lemmas():
-#             synonyms.add(lemma.name().replace('_', ' '))
-#     return list(synonyms)
-
-# def generate_augmented_patterns(user_input):
-#     augmented_patterns = set()
-#     doc = nlp(user_input)
-#     for token in doc:
-#         synonyms = get_synonyms(token.text)
-#         for synonym in synonyms:
-#             augmented_pattern = user_input.replace(token.text, synonym)
-#             augmented_patterns.add(augmented_pattern)
-#     return list(augmented_patterns)
 
 def find_best_match(user_input, intent_data):
     
@@ -93,8 +67,6 @@ def find_best_match(user_input, intent_data):
                     best_intent = item['intent']
 
     return best_intent, best_similarity
-
-intent_keywords = ['use', 'uses', 'dosage', 'dose', 'side', 'effects', 'side-effects', 'warnings', 'danger']
 
 def get_response(user_input, intent_data, medicine_data):
 
@@ -120,19 +92,22 @@ def get_response(user_input, intent_data, medicine_data):
 
             else:
             # Run scraping script if data not found
-            
-            # scraped_data = search_med(keyword)
-            # if scraped_data:
-            #     medicine_data[keyword] = scraped_data
-            #     return scraped_data['uses'][0]  # Example: Fetch 'uses' information from scraped data
-            # else:
-                return "Sorry, I couldn't find any information on that."
+                # print(f'Fetching new data for key : {normalized_key}')
+                scraped_data = search_med(normalized_key)
+                
+                if scraped_data:
+                    medicine_data[normalized_key] = scraped_data
+                    # print('Data successfully fetch...')
+                    # print('Updated medicine data : ', medicine_data)
+                    
+                    if intent in medicine_data[normalized_key]:
+                        return random.choice(medicine_data[normalized_key][intent])
+                    
+                else:
+                    return "Sorry, I couldn't find any information on that."
+                
     return "Sorry, I don't have information on that. Let me try to fetch it for you."
 
-
-
-user_input = "standard dosage of paracetamol"
+user_input = "what are the uses of paracetamol"
 response = get_response(user_input, intent_data, medicine_data)
 print("Response:", response)
-
-

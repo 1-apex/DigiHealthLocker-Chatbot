@@ -6,7 +6,7 @@ app = web.Application()
 sio.attach(app)
 
 @sio.event
-async def connect(sid):
+async def connect(sid, environ):
     print('Client connected:', sid)
 
 @sio.event
@@ -14,11 +14,14 @@ async def disconnect(sid):
     print('Client disconnected:', sid)
 
 @sio.event
-async def client_message(sid, data):
+async def py_client_message(sid, data):
     print('Received message:', data)
-    response = process_message(data)
-    print('Sending response:', response)
-    await sio.emit('response', response, to=sid)
+
+    response = process_message(data['message'])
+    # print('Sending response:', response)
+    data['message'] = response
+
+    await sio.emit('py_bot_response', data, to=sid)
 
 def process_message(message):
     message = "ajun tr kaam krty"

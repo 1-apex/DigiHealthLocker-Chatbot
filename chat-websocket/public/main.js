@@ -38,16 +38,16 @@ function sendMessage() {
     messageInput.value = '';
 }
 
-socket.on('client_chat_message', (data) => {
-    console.log('main.js : client_chat_message : ', data);
+socket.on('update_bot_response', (data) => {
+    console.log('main.js : update_bot_response : ', data);
     // messageTone.play();
     addMessageToUI(false, data);
 })
 
 // if chatbot message : isOwnMessage = True
 function addMessageToUI(isOwnMessage, data) {
-    clearFeedback(); 
-
+    clearFeedback();
+    console.log("add messsage called : ", data.message);
     const element = `
         <li class="${isOwnMessage ? 'message-right' : 'message-left'}">
             <p class="message">
@@ -84,7 +84,7 @@ messageInput.addEventListener('blur', (e) => {
 
 socket.on('feedback-message', (data) => {
     clearFeedback();
-    
+
     const element = `
         <li class="message-feedback">
             <p class="feedback" id="feedback">
@@ -92,12 +92,12 @@ socket.on('feedback-message', (data) => {
             </p>
         </li>
         `;
-    
+
     messageContainer.innerHTML += element;
 })
 
 function clearFeedback() {
-    document.querySelectorAll('li.message-feedback').forEach( element => {
+    document.querySelectorAll('li.message-feedback').forEach(element => {
         element.parentNode.removeChild(element);
     })
 }

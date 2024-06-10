@@ -19,12 +19,12 @@ pythonSocket.on('connect', () => {
   console.log('Connected to Python server');
 });
 
-pythonSocket.on('response', (response) => {
-  console.log('Received response from Python server:', response);
-
+pythonSocket.on('py_bot_response', (response) => {
+  console.log('Sending response to client:', response.message);
   if (response.originalSocketId) {
-    io.to(response.originalSocketId).emit('response', response.message);
+    io.to(response.originalSocketId).emit('update_bot_response', response);
   }
+  // io.emit('update_bot_response', response);
 });
 
 io.on('connection', (socket) => {
@@ -36,12 +36,7 @@ io.on('connection', (socket) => {
     console.log('Received message from client:', message);
 
     // Forward the message to the Python server
-    pythonSocket.emit('message', { originalSocketId: socket.id, message: message });
-
-    pythonSocket.once('response', (response) => {
-      console.log('Sending response to client:', response);
-      socket.emit('response', response);
-    });
+    pythonSocket.emit('py_client_message', { originalSocketId: socket.id, message: message.message });
   });
 
   socket.on('disconnect', () => {

@@ -22,7 +22,7 @@ async def message(sid, data):
 
 def process_message(message):
     message = "ajun tr kaam krty"
-    return f"Processed: {message}"
+    return f"{message}"
 
 if __name__ == '__main__':
     web.run_app(app, port=5000)

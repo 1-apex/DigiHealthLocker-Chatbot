@@ -16,8 +16,7 @@ pythonSocket.on('connect', () => {
 
 pythonSocket.on('response', (response) => {
   console.log('Received response from Python server:', response);
-  // Send the response back to the web client
-  // You need to keep track of the original client socket
+
   if (response.originalSocketId) {
     io.to(response.originalSocketId).emit('response', response.message);
   }
@@ -33,8 +32,8 @@ io.on('connection', (socket) => {
     pythonSocket.emit('message', { originalSocketId: socket.id, message: message });
 
     pythonSocket.once('response', (response) => {
-      console.log('Sending response to client:', response.message);
-      socket.emit('response', response.message);
+      console.log('Sending response to client:', response);
+      socket.emit('response', response);
     });
   });
 

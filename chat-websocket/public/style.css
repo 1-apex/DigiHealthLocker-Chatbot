@@ -29,12 +29,11 @@ body {
     position: relative;
 }
 
-.chatbot-button {
+/* .chatbot-button {
     position: fixed;
     bottom: 20px;
     right: 20px;
     cursor: pointer;
-    z-index: 9999; /* Ensuring the button stays on top */
 }
 
 .chatbot-animation {
@@ -53,7 +52,7 @@ body {
     position: fixed;
     bottom: 0;
     right: 0;
-    width: 400px;
+    width: 500px;
     height: 600px;
     border: 8px solid #dddddd;
     border-radius: 24px;
@@ -65,7 +64,7 @@ body {
 
 .chatbot-window.open {
     transform: translateX(0%);
-}
+} */
 
 .name {
     display: flex;

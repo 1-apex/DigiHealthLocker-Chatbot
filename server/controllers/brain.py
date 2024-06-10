@@ -180,7 +180,8 @@ def get_response(user_input):
                     
                     medicine_data = find_medicine_data(normalized_key)
                     if medicine_data:
-                        return random.choice(medicine_data[intent])
+                        num_choices = random.randint(2, 3)
+                        return random.sample(medicine_data[intent], num_choices)
                     
                 else:
                     return "Sorry, I couldn't find any information on that."

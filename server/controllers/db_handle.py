@@ -4,7 +4,7 @@ import pymongo
 def connect_db():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
     db = client["Chatbot_Data"]
-    collection = db['data']
+    collection = db['medicine_data']
     
     return collection
 

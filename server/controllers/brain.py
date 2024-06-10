@@ -3,12 +3,18 @@ import spacy
 import random
 import sys
 import os
-from medicine_data_extractor import *
+import pymongo
+from bs4 import BeautifulSoup
+import requests
+# from medicine_data_extractor import *
+# from db_handle import *
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'modules'))
 sys.path.append(module_path)
 from augmented_data_generation import *
 from keywords import *
-from db_handle import *
+
+# Load spaCy model
+nlp = spacy.load("en_core_web_lg")
 
 # static data
 intent_data = [
@@ -44,10 +50,77 @@ intent_data = [
 
 intent_keywords = ['use', 'uses', 'dosage', 'dose', 'side', 'effects', 'side-effects', 'warnings', 'danger']
 
-# Load spaCy model
-nlp = spacy.load("en_core_web_lg")
+# connect with database
+def connect_db():
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    db = client["Chatbot_Data"]
+    collection = db['medicine_data']
+    
+    return collection
 
-def find_best_match(user_input, intent_data):
+# inserting data 
+def insert_medicine_data(keyword, data):
+    db_collection = connect_db()
+    result = db_collection.insert_one({keyword : data})
+
+    if result:
+        return "Data inserted successfully in database :)"
+    else:
+        return "Error inserting data :("
+    
+# find data
+def find_medicine_data(keyword):
+    db_collection = connect_db()
+    
+    query = { f"{keyword}.medicine": keyword }
+    result = db_collection.find_one(query)
+    
+    if result:
+        # return "Data available in database :)"
+        return result[keyword] 
+    # return f"No data available of {keyword} :("
+    return None
+
+# medicine data extractor
+def search_med(medicine):
+    base_url = "https://www.drugs.com/"
+    search_url = f"{base_url}{medicine}.html"
+    req = requests.get(search_url)
+
+    if req.status_code != 200:
+        print(f"Failed to retrieve search results for {medicine}. Status code: {req.status_code}")
+        return
+    
+    soup = BeautifulSoup(req.content, "lxml")
+    
+    medicine_data = {
+        'medicine': medicine,
+        'uses': [],
+        'warnings': [],
+        'dosage': [],
+        'side-effects': []
+    }
+    
+    sections = ['uses', 'warnings', 'dosage', 'side-effects']
+    current_section = None
+    
+    for element in soup.find_all(['h2', 'p', 'li']):
+        if element.name == 'h2':
+            section_id = element.get('id')
+            if section_id in sections:
+                current_section = section_id
+            else:
+                current_section = None
+        elif element.name == 'li' and current_section == 'side-effects':
+            medicine_data[current_section].append(element.get_text(strip=True))
+        elif element.name == 'p' and current_section and current_section != 'side-effects':
+            medicine_data[current_section].append(element.get_text(strip=True))
+            
+    insert_medicine_data(medicine, medicine_data)
+    
+    return medicine_data
+
+def find_best_match(user_input):
     
     best_intent = None
     best_similarity = 0
@@ -70,9 +143,9 @@ def find_best_match(user_input, intent_data):
 
     return best_intent, best_similarity
 
-def get_response(user_input, intent_data):
+def get_response(user_input):
 
-    intent, similarity = find_best_match(user_input, intent_data)
+    intent, similarity = find_best_match(user_input)
     print(f'intent : {intent}, similarity : {similarity}')
 
     if intent and similarity > 0.7: 
@@ -101,7 +174,7 @@ def get_response(user_input, intent_data):
                 
                 if scraped_data:
                     # medicine_data[normalized_key] = scraped_data
-                    insert_medicine_data(normalized_key, scraped_data)
+                    # insert_medicine_data(normalized_key, scraped_data)
                     # print('Data successfully fetch...')
                     # print('Updated medicine data : ', medicine_data)
                     
@@ -113,7 +186,3 @@ def get_response(user_input, intent_data):
                     return "Sorry, I couldn't find any information on that."
                 
     return "Sorry, I don't have information on that. Let me try to fetch it for you."
-
-user_input = "dosage standards of aspirin"
-response = get_response(user_input, intent_data)
-print("Response:", response)

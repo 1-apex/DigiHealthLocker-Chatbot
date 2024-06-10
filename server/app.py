@@ -1,5 +1,6 @@
 import socketio
 from aiohttp import web
+from controllers.brain import *
 
 sio = socketio.AsyncServer()
 app = web.Application()
@@ -24,7 +25,7 @@ async def py_client_message(sid, data):
     await sio.emit('py_bot_response', data, to=sid)
 
 def process_message(message):
-    message = "ajun tr kaam krty"
+    message = get_response(message)
     return f"{message}"
 
 if __name__ == '__main__':

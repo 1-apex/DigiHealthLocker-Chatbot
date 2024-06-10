@@ -39,7 +39,7 @@ function sendMessage() {
 }
 
 socket.on('update_bot_response', (data) => {
-    console.log('main.js : update_bot_response : ', data);
+    // console.log('main.js : update_bot_response : ', data);
     // messageTone.play();
     addMessageToUI(false, data);
 })
@@ -47,7 +47,7 @@ socket.on('update_bot_response', (data) => {
 // if chatbot message : isOwnMessage = True
 function addMessageToUI(isOwnMessage, data) {
     clearFeedback();
-    console.log("add messsage called : ", data.message);
+
     const element = `
         <li class="${isOwnMessage ? 'message-right' : 'message-left'}">
             <p class="message">

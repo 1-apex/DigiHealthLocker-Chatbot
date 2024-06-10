@@ -1,11 +1,16 @@
 const express = require('express');
 const http = require('http');
+const path = require('path')
 const socketIo = require('socket.io');
 const ioClient = require('socket.io-client');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = require('socket.io')(server)
+
+app.use(express.static(path.join(__dirname, 'public')))
+
+let socketsConnected = new Set()
 
 // Connect to the Python server
 const pythonSocket = ioClient.connect('http://localhost:5000');
@@ -23,9 +28,11 @@ pythonSocket.on('response', (response) => {
 });
 
 io.on('connection', (socket) => {
+  console.log('Socket ID added : ',socket.id);
+  socketsConnected.add(socket.id);
   console.log('Client connected');
 
-  socket.on('message', (message) => {
+  socket.on('client_message', (message) => {
     console.log('Received message from client:', message);
 
     // Forward the message to the Python server
@@ -39,7 +46,14 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected');
+    socketsConnected.delete(socket.id);
+    // io.emit('clients-total', socketsConnected.size);
   });
+
+  socket.on('feedback', (data) => {
+    // console.log(data);
+    socket.emit('feedback-message', data);
+})
 });
 
 server.listen(4010, () => {

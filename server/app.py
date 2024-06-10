@@ -6,7 +6,7 @@ app = web.Application()
 sio.attach(app)
 
 @sio.event
-async def connect(sid, environ):
+async def connect(sid):
     print('Client connected:', sid)
 
 @sio.event
@@ -14,7 +14,7 @@ async def disconnect(sid):
     print('Client disconnected:', sid)
 
 @sio.event
-async def message(sid, data):
+async def client_message(sid, data):
     print('Received message:', data)
     response = process_message(data)
     print('Sending response:', response)

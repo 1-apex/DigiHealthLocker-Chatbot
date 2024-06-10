@@ -6,7 +6,6 @@ const messageContainer = document.getElementById('message-container');
 const nameInput = document.getElementById('name-input');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
-
 // const messageTone = new Audio('/msg-tone.mp3');
 
 messageForm.addEventListener('submit', (e) => {
@@ -34,13 +33,13 @@ function sendMessage() {
     }
 
     // paramters - event name, data to send
-    socket.emit('message', data);
+    socket.emit('client_message', data);
     addMessageToUI(true, data);
     messageInput.value = '';
 }
 
-socket.on('chat-message', (data) => {
-    // console.log(data);
+socket.on('client_chat_message', (data) => {
+    console.log('main.js : client_chat_message : ', data);
     // messageTone.play();
     addMessageToUI(false, data);
 })

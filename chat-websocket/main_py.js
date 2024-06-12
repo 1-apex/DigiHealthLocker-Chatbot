@@ -20,7 +20,7 @@ pythonSocket.on('connect', () => {
 });
 
 pythonSocket.on('py_bot_response', (response) => {
-  console.log('Sending response to client:', response.message);
+  // console.log('Sending response to client:', response.message);
   if (response.originalSocketId) {
     io.to(response.originalSocketId).emit('update_bot_response', response);
   }
@@ -28,12 +28,12 @@ pythonSocket.on('py_bot_response', (response) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('Socket ID added : ',socket.id);
+  // console.log('Socket ID added : ',socket.id);
   socketsConnected.add(socket.id);
   console.log('Client connected');
 
   socket.on('client_message', (message) => {
-    console.log('Received message from client:', message);
+    // console.log('Received message from client:', message);
 
     // Forward the message to the Python server
     pythonSocket.emit('py_client_message', { originalSocketId: socket.id, message: message.message });

@@ -44,22 +44,6 @@ socket.on('update_bot_response', (data) => {
     addMessageToUI(false, data);
 })
 
-// if chatbot message : isOwnMessage = True
-// function addMessageToUI(isOwnMessage, data) {
-//     clearFeedback();
-
-//     const element = `
-//         <li class="${isOwnMessage ? 'message-right' : 'message-left'}">
-//             <p class="message">
-//                 ${data.message}
-//             </p>
-//         </li>
-//         `;
-
-//     messageContainer.innerHTML += element;
-//     scrollToBottom();
-// }
-
 function addMessageToUI(isOwnMessage, data) {
     clearFeedback();
 
@@ -84,6 +68,7 @@ function typeWriter(element, text, index = 0, speed = 20) {
         element.innerHTML += text.charAt(index);
         setTimeout(() => typeWriter(element, text, index + 1, speed), speed);
     }
+    scrollToBottom();
 }
 
 function scrollToBottom() {

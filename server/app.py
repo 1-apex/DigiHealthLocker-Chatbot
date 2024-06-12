@@ -16,7 +16,7 @@ async def disconnect(sid):
 
 @sio.event
 async def py_client_message(sid, data):
-    print('Received message:', data)
+    # print('Received message:', data)
 
     response = process_message(data['message'])
     # print('Sending response:', response)

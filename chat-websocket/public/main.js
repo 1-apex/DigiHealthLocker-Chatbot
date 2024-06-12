@@ -45,19 +45,45 @@ socket.on('update_bot_response', (data) => {
 })
 
 // if chatbot message : isOwnMessage = True
+// function addMessageToUI(isOwnMessage, data) {
+//     clearFeedback();
+
+//     const element = `
+//         <li class="${isOwnMessage ? 'message-right' : 'message-left'}">
+//             <p class="message">
+//                 ${data.message}
+//             </p>
+//         </li>
+//         `;
+
+//     messageContainer.innerHTML += element;
+//     scrollToBottom();
+// }
+
 function addMessageToUI(isOwnMessage, data) {
     clearFeedback();
 
-    const element = `
-        <li class="${isOwnMessage ? 'message-right' : 'message-left'}">
-            <p class="message">
-                ${data.message}
-            </p>
-        </li>
-        `;
+    const listItem = document.createElement('li');
+    listItem.className = isOwnMessage ? 'message-right' : 'message-left';
+    const messageElement = document.createElement('p');
+    messageElement.className = 'message';
+    listItem.appendChild(messageElement);
 
-    messageContainer.innerHTML += element;
+    messageContainer.appendChild(listItem);
     scrollToBottom();
+
+    if (isOwnMessage) {
+        messageElement.textContent = data.message;
+    } else {
+        typeWriter(messageElement, data.message);
+    }
+}
+
+function typeWriter(element, text, index = 0, speed = 20) {
+    if (index < text.length) {
+        element.innerHTML += text.charAt(index);
+        setTimeout(() => typeWriter(element, text, index + 1, speed), speed);
+    }
 }
 
 function scrollToBottom() {

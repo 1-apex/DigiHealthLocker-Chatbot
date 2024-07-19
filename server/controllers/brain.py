@@ -50,6 +50,8 @@ intent_data = [
 
 intent_keywords = ['use', 'uses', 'dosage', 'dose', 'side', 'effects', 'side-effects', 'warnings', 'danger']
 
+# previous_data = []
+
 # connect with database
 def connect_db():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -147,9 +149,11 @@ def get_response(user_input):
 
     intent, similarity = find_best_match(user_input)
     print(f'intent : {intent}, similarity : {similarity}')
+    keyword = get_keywords(user_input)
+    # print('keyword : ', keyword)
+    # print('previous_data : ', previous_data)
 
     if intent and similarity > 0.7: 
-        keyword = get_keywords(user_input)
         # print('keyword : ', keyword)
 
         for key in keyword:
@@ -162,28 +166,25 @@ def get_response(user_input):
                 
             # if normalized_key in medicine_data.keys():
             medicine_data = find_medicine_data(normalized_key)
+            # if normalized_key in previous_data:
+            #     previous_data.remove(normalized_key)
+            # previous_data.append(normalized_key)
             if medicine_data:
-                # print(f'Key {normalized_key} found in medicine_data')
-                # if intent in medicine_data[normalized_key]:
                 return random.choice(medicine_data[intent])
-
+            # handling input without any medicine keyword 
+            # elif len(normalized_key) == 0 and len(previous_data) != 0:
+            #     print('previous data fetched..')
+            #     medicine_data = find_medicine_data(previous_data[-1])
+            #     return random.choice(medicine_data[intent])
+            # handling input with unknown medicine (scraping)
             else:
-            # Run scraping script if data not found
-                # print(f'Fetching new data for key : {normalized_key}')
                 scraped_data = search_med(normalized_key)
-                
                 if scraped_data:
-                    # medicine_data[normalized_key] = scraped_data
-                    # insert_medicine_data(normalized_key, scraped_data)
-                    # print('Data successfully fetch...')
-                    # print('Updated medicine data : ', medicine_data)
-                    
                     medicine_data = find_medicine_data(normalized_key)
                     if medicine_data:
-                        num_choices = random.randint(2, 3)
-                        return random.sample(medicine_data[intent], num_choices)
-                    
+                        return random.choice(medicine_data[intent])
                 else:
                     return "Sorry, I couldn't find any information on that."
-                
-    return "Sorry, I don't have information on that. Let me try to fetch it for you."
+    # this will be user inputs without any medicine related information
+    else:         
+        return f"Sorry, I don't have information on that."

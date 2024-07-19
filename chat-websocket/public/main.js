@@ -54,10 +54,10 @@ function addMessageToUI(isOwnMessage, data) {
     listItem.appendChild(messageElement);
 
     messageContainer.appendChild(listItem);
-    scrollToBottom();
 
     if (isOwnMessage) {
         messageElement.textContent = data.message;
+        scrollToBottom();
     } else {
         typeWriter(messageElement, data.message);
     }

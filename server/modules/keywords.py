@@ -13,6 +13,6 @@ def get_keywords(user_input):
  
     return list(keywords)
 
-# sentence = "what are the uses of paracetamol, aspirin and crocin"
+# sentence = "tell me more uses of it"
 # keywords = get_keywords(sentence)
 # print(keywords)
